@@ -1,0 +1,68 @@
+version: "3.9"
+
+services:
+  # ── MySQL ──────────────────────────────────────────────────
+  mysql:
+    image: mysql:8.0
+    container_name: edugrade_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-edugrade123}
+      MYSQL_DATABASE: ${DB_NAME:-edugrade_ai}
+      MYSQL_USER: ${DB_USER:-edugrade}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-edugrade123}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Backend FastAPI ────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: edugrade_backend
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-edugrade}
+      DB_PASSWORD: ${DB_PASSWORD:-edugrade123}
+      DB_NAME: ${DB_NAME:-edugrade_ai}
+      CHROMA_PERSIST_DIR: /app/chroma_db
+      UPLOAD_DIR: /app/data/examenes
+      REPORTS_DIR: /app/data/reportes
+      MATERIALS_DIR: /app/data/materiales
+      CORS_ORIGINS: http://localhost:5173,http://localhost:80
+    ports:
+      - "8000:8000"
+    volumes:
+      - backend_data:/app/data
+      - chroma_data:/app/chroma_db
+
+  # ── Frontend Vue.js ────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: edugrade_frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "80:80"
+
+volumes:
+  mysql_data:
+  backend_data:
+  chroma_data:
