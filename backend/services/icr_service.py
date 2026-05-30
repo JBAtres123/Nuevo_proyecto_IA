@@ -100,21 +100,24 @@ IDIOMA:
 - Abreviaturas como Pts., No., Resp., Cte., F/V deben interpretarse como español estándar.
 - Responde siempre en español.
 
-DINÁMICAS POSIBLES:
-- matematicas: álgebra, cálculo, física, geometría, fórmulas, operaciones, fracciones, raíces, exponentes.
-- seleccion_multiple: opciones A/B/C/D o a/b/c/d.
+DINÁMICAS POSIBLES (lee con atención las pistas visuales):
+- matematicas: álgebra, cálculo, física, geometría, fórmulas, operaciones, fracciones, raíces, exponentes, binomios, polinomios.
+- seleccion_multiple: opciones A/B/C/D o a/b/c/d claramente enumeradas.
 - verdadero_falso: marcar V/F, Cierto/Falso, T/F, checkboxes, sí/no.
 - completar: espacios en blanco, líneas o guiones para llenar.
 - subrayado: subrayar/circular/resaltar la opción correcta en un texto.
-- relacionar: unir columnas, flechas, líneas o emparejamientos.
+- relacionar: DOS COLUMNAS conectadas con flechas de colores, líneas trazadas a mano, o letras/números que emparejan elementos. Si ves líneas o flechas cruzadas uniendo elementos de columnas, ES relacionar.
 - ordenar: numerar, secuenciar pasos o colocar en orden.
 - desarrollo: preguntas abiertas, definiciones, explicación o ensayo.
 - codigo: código fuente, pseudocódigo, algoritmos, SQL, HTML, Java, Python, etc.
-- mixto: si hay varios tipos diferentes.
+- mixto: si hay varios tipos diferentes en distintas secciones/series.
 
-CRITERIO:
-- Si hay matemáticas mezclada con relacionar/completar/selección, usa "mixto" y agrega todos los tipos en "tipos_presentes".
-- Si no estás seguro, usa "mixto", no inventes un tipo inexistente.
+CRITERIO ESTRICTO:
+- Si el examen tiene secciones (I SERIE, II SERIE, III SERIE, SECCIÓN A, etc.) con DIFERENTES tipos, SIEMPRE usa "mixto" y lista cada tipo en "tipos_presentes".
+- Si hay DOS COLUMNAS con flechas o líneas conectando elementos, agrega "relacionar" a "tipos_presentes".
+- Si hay matemáticas en una sección Y relacionar/completar/selección en otra, usa "mixto".
+- Si no estás seguro, usa "mixto".
+- Revisa TODA la imagen antes de responder, incluyendo la parte inferior.
 
 Responde ÚNICAMENTE con JSON válido, sin markdown:
 {
@@ -190,13 +193,13 @@ def _prompt_matematicas() -> str:
   "preguntas": [
     {
       "numero": 1,
-      "seccion": "",
+      "seccion": "I SERIE",
       "tipo": "matematicas",
-      "enunciado": "Enunciado con expresiones LaTeX si aplica",
-      "respuesta": "Resultado final del estudiante en LaTeX",
-      "procedimiento": "Pasos escritos por el estudiante",
+      "enunciado": "$y^2 - 15y^2 + 75y - 125$",
+      "respuesta": "$(y - 5)^3$",
+      "procedimiento": "Pasos escritos por el estudiante si existen",
       "tiene_latex": true,
-      "unidad": "metros|grados|sin unidad|etc"
+      "unidad": "sin unidad"
     }
   ]
 }"""
@@ -205,13 +208,22 @@ Eres un experto en ICR para exámenes matemáticos/científicos escritos en espa
 Extrae TODAS las preguntas con máxima fidelidad, aunque las respuestas sean incorrectas.
 No resuelvas el examen: transcribe lo que aparece y lo que respondió el estudiante.
 
+REGLA CRÍTICA — SIN DUPLICADOS:
+- Escribe cada expresión matemática UNA SOLA VEZ en formato LaTeX.
+- NUNCA escribas la misma expresión en Unicode Y en LaTeX al mismo tiempo.
+- NUNCA pongas saltos de línea dentro de una expresión matemática en un campo de texto.
+- CORRECTO: "enunciado": "$y^2 - 15y^2 + 75y - 125$"
+- INCORRECTO: "enunciado": "y\\n2\\n−\\n15y²+75y−125 y 2 −15y 2 +75y−125"
+
 REGLAS DE LaTeX:
 - Inline: $expresión$   Ej: $x^2 + 2x + 1$
-- Display: $$expresión$$
+- Exponentes: $x^2$, $b^{{3}}$, $6x^2 - 3x$
 - Fracción: $\\frac{{a}}{{b}}$  Raíz: $\\sqrt[n]{{x}}$
-- Nunca escribas "rac" para una raíz o fracción. Usa siempre \\sqrt o \\frac.
-- Para exponentes usa $x^2$, $b^{{2c}}$, etc.
+- Nunca escribas "rac" para raíz o fracción. Usa siempre \\sqrt o \\frac.
 - Si hay texto ilegible usa [ILEGIBLE]
+
+SECCIÓN:
+- Extrae el encabezado de la sección a la que pertenece cada pregunta (ej: "I SERIE", "II SERIE").
 
 FORMATO JSON (sin texto adicional, sin markdown):
 {schema}
@@ -448,16 +460,36 @@ def _prompt_mixto(tipos_detectados: list[str]) -> str:
 """ + _SCHEMA_BASE_METADATA + """
   "secciones": [
     {
-      "id_seccion": "I",
-      "titulo_seccion": "Nombre de la sección según aparece en el examen",
-      "tipo_dinamica": "<tipo de esta sección>",
-      "instrucciones": "Instrucciones de la sección",
+      "id_seccion": "I SERIE",
+      "titulo_seccion": "I SERIE: valor 10 puntos — binomios al cubo",
+      "tipo_dinamica": "matematicas",
+      "instrucciones": "Desarrolla los siguientes binomios al cubo",
       "preguntas": [
         {
           "numero": 1,
-          "tipo": "<tipo>",
-          "enunciado": "...",
-          "respuesta": "...",
+          "tipo": "matematicas",
+          "enunciado": "$y^3 - 15y^2 + 75y - 125$",
+          "respuesta": "$(y - 5)^3$",
+          "procedimiento": "",
+          "datos_extra": {}
+        }
+      ]
+    },
+    {
+      "id_seccion": "III SERIE",
+      "titulo_seccion": "III SERIE: valor 10 puntos — diferencias de cuadrados",
+      "tipo_dinamica": "relacionar",
+      "instrucciones": "Relaciona correctamente las diferencias de cuadrados",
+      "preguntas": [
+        {
+          "numero": 1,
+          "tipo": "relacionar",
+          "enunciado": "Relaciona cada expresión con su factorización",
+          "columna_a": ["$100x^2 - 49$", "$\\\\frac{1}{4}x^{30} - x^6$"],
+          "columna_b": ["$(10x + 7)(10x - 7)$", "$(\\\\frac{1}{2}x^{15} - x^3)(\\\\frac{1}{2}x^{15} + x^3)$"],
+          "respuestas": [
+            {"izquierda": "$100x^2 - 49$", "derecha": "$(10x + 7)(10x - 7)$"}
+          ],
           "datos_extra": {}
         }
       ]
@@ -469,21 +501,39 @@ Eres un experto en ICR para exámenes con múltiples tipos de preguntas escritos
 No resuelvas el examen: extrae el contenido y la respuesta escrita/marcada por el estudiante.
 Se detectaron estas dinámicas en el examen: {tipos_str}
 
-REGLAS:
-- Organiza las preguntas por sección (I, II, III, A, B, etc. según el examen).
+REGLA CRÍTICA — SIN DUPLICADOS EN LATEX:
+- Escribe cada expresión matemática UNA SOLA VEZ en formato LaTeX: $expresión$
+- NUNCA escribas la misma expresión en texto plano Y en LaTeX.
+- NUNCA pongas saltos de línea dentro de un valor de campo JSON.
+- CORRECTO: "enunciado": "$y^3 - 15y^2 + 75y - 125$"
+- INCORRECTO: "enunciado": "y³−15y²+75y−125\\n$(y)^3$..."
+
+REGLAS DE EXTRACCIÓN:
+- Organiza las preguntas por SECCIÓN (I SERIE, II SERIE, III SERIE, etc. según aparezcan en el examen).
+- Captura el título/encabezado COMPLETO de cada sección.
+- Captura las instrucciones de cada sección.
 - En cada pregunta, adapta los campos a su tipo:
-  * matematicas → incluye "procedimiento" y usa LaTeX: $expresión$
-  * seleccion_multiple → incluye "opciones" dict y "respuesta_marcada"
-  * verdadero_falso → incluye "valor_normalizado" (true/false/null)
-  * completar → incluye "respuestas_insertadas" lista
-  * subrayado → incluye "opciones_en_texto" y "respuesta_subrayada"
-  * relacionar → incluye "columna_a", "columna_b", "respuestas"
-  * desarrollo → incluye "palabras_clave_detectadas"
-  * codigo → incluye "lenguaje_detectado" y "codigo_transcrito"
-- En "datos_extra" agrega cualquier campo adicional relevante para ese tipo.
-- Si hay expresiones matemáticas, transcríbelas en LaTeX.
-- Usa \\frac{{a}}{{b}} para fracciones y \\sqrt{{x}} o \\sqrt[n]{{x}} para raíces.
-- Nunca escribas "rac" para representar raíces o fracciones.
+  * matematicas → "enunciado" en LaTeX, "respuesta" en LaTeX, "procedimiento" si aplica
+  * seleccion_multiple → "opciones" dict {{A,B,C,D}} y "respuesta_marcada"
+  * verdadero_falso → "valor_normalizado" (true/false/null)
+  * completar → "respuestas_insertadas" lista
+  * subrayado → "opciones_en_texto" lista y "respuesta_subrayada"
+  * relacionar → "columna_a" lista, "columna_b" lista, "respuestas" lista de {{izquierda, derecha}} según las flechas/líneas trazadas
+  * desarrollo → "palabras_clave_detectadas" lista
+  * codigo → "lenguaje_detectado" y "codigo_transcrito"
+
+RELACIONAR — INSTRUCCIONES ESPECIALES:
+- Si ves dos columnas con líneas de colores o flechas trazadas entre elementos, eso es "relacionar".
+- Transcribe TODOS los elementos de columna_a y columna_b aunque no estén conectados.
+- En "respuestas" registra SOLO las conexiones que trazó el estudiante (flecha izquierda→derecha).
+- Las expresiones matemáticas en columnas también van en LaTeX.
+
+LaTeX GENERAL:
+- Inline: $expresión$
+- Fracción: $\\frac{{a}}{{b}}$
+- Raíz: $\\sqrt{{x}}$ o $\\sqrt[n]{{x}}$
+- Exponente: $x^{{2}}$, $6x^2 - 3x$
+- Nunca escribas "rac" para raíces o fracciones.
 - Si hay partes ilegibles usa [ILEGIBLE].
 
 FORMATO JSON (sin texto adicional, sin markdown):
@@ -762,8 +812,10 @@ def _build_icr_summary(parsed: dict, tipo_principal: str) -> str:
 
             num = p.get("numero", "?")
             tipo = _safe_text(p.get("tipo", "desconocido"))
+            seccion = _safe_text(p.get("seccion") or p.get("serie_seccion") or "")
             enunciado = _safe_text(p.get("enunciado", p.get("enunciado_con_blancos", "")))
-            lines.append(f"\n[Pregunta {num} — {tipo}]")
+            seccion_label = f" | {seccion}" if seccion else ""
+            lines.append(f"\n[Pregunta {num}{seccion_label} — {tipo}]")
             if enunciado:
                 lines.append(f"  Enunciado: {enunciado}")
 
