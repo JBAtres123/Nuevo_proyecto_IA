@@ -476,8 +476,58 @@ def _prompt_mixto(tipos_detectados: list[str]) -> str:
       ]
     },
     {
+      "id_seccion": "II SERIE",
+      "titulo_seccion": "II SERIE: Preguntas de desarrollo",
+      "tipo_dinamica": "desarrollo",
+      "instrucciones": "Responde con tus propias palabras",
+      "preguntas": [
+        {
+          "numero": 1,
+          "tipo": "desarrollo",
+          "enunciado": "¿En qué consistió la Revolución Industrial?",
+          "respuesta": "Fue el cambio de producción artesanal a industrial usando máquinas de vapor.",
+          "palabras_clave_detectadas": ["Revolución Industrial", "máquinas de vapor"],
+          "datos_extra": {}
+        }
+      ]
+    },
+    {
       "id_seccion": "III SERIE",
-      "titulo_seccion": "III SERIE: valor 10 puntos — diferencias de cuadrados",
+      "titulo_seccion": "III SERIE: Verdadero o Falso",
+      "tipo_dinamica": "verdadero_falso",
+      "instrucciones": "Escriba V o F",
+      "preguntas": [
+        {
+          "numero": 1,
+          "tipo": "verdadero_falso",
+          "enunciado": "Los Derechos Humanos son universales e inalienables.",
+          "respuesta": "V",
+          "respuesta_marcada": "V",
+          "valor_normalizado": true,
+          "datos_extra": {}
+        }
+      ]
+    },
+    {
+      "id_seccion": "IV SERIE",
+      "titulo_seccion": "IV SERIE: Selección Múltiple",
+      "tipo_dinamica": "seleccion_multiple",
+      "instrucciones": "Marque la respuesta correcta",
+      "preguntas": [
+        {
+          "numero": 1,
+          "tipo": "seleccion_multiple",
+          "enunciado": "Sistema político donde el pueblo elige a sus gobernantes:",
+          "respuesta": "A",
+          "opciones": {"A": "Democracia", "B": "Monarquía Absoluta", "C": "Dictadura"},
+          "respuesta_marcada": "A",
+          "datos_extra": {}
+        }
+      ]
+    },
+    {
+      "id_seccion": "V SERIE",
+      "titulo_seccion": "V SERIE: valor 10 puntos — diferencias de cuadrados",
       "tipo_dinamica": "relacionar",
       "instrucciones": "Relaciona correctamente las diferencias de cuadrados",
       "preguntas": [
@@ -512,15 +562,16 @@ REGLAS DE EXTRACCIÓN:
 - Organiza las preguntas por SECCIÓN (I SERIE, II SERIE, III SERIE, etc. según aparezcan en el examen).
 - Captura el título/encabezado COMPLETO de cada sección.
 - Captura las instrucciones de cada sección.
-- En cada pregunta, adapta los campos a su tipo:
+- OBLIGATORIO EN TODAS LAS PREGUNTAS: incluye siempre "enunciado" con el texto completo de la pregunta/afirmación/enunciado tal como aparece impreso en el examen, y "respuesta" con lo que marcó o escribió el estudiante.
+- En cada pregunta, adapta ADEMÁS los campos específicos según su tipo:
   * matematicas → "enunciado" en LaTeX, "respuesta" en LaTeX, "procedimiento" si aplica
-  * seleccion_multiple → "opciones" dict {{A,B,C,D}} y "respuesta_marcada"
-  * verdadero_falso → "valor_normalizado" (true/false/null)
-  * completar → "respuestas_insertadas" lista
-  * subrayado → "opciones_en_texto" lista y "respuesta_subrayada"
-  * relacionar → "columna_a" lista, "columna_b" lista, "respuestas" lista de {{izquierda, derecha}} según las flechas/líneas trazadas
-  * desarrollo → "palabras_clave_detectadas" lista
-  * codigo → "lenguaje_detectado" y "codigo_transcrito"
+  * seleccion_multiple → "enunciado" (texto de la pregunta), "opciones" dict {{A,B,C,D}}, "respuesta_marcada" (letra seleccionada)
+  * verdadero_falso → "enunciado" (afirmación completa tal como aparece), "respuesta_marcada" (V o F), "valor_normalizado" (true/false/null)
+  * completar → "enunciado" (oración con ___ en los blancos), "respuestas_insertadas" lista
+  * subrayado → "enunciado" (instrucción o contexto), "opciones_en_texto" lista y "respuesta_subrayada"
+  * relacionar → "enunciado" (instrucción de la actividad), "columna_a" lista, "columna_b" lista, "respuestas" lista de {{izquierda, derecha}} según las flechas/líneas trazadas
+  * desarrollo → "enunciado" (pregunta completa tal como está escrita), "respuesta" (lo que escribió el estudiante), "palabras_clave_detectadas" lista
+  * codigo → "enunciado" (descripción del problema), "lenguaje_detectado" y "codigo_transcrito"
 
 RELACIONAR — INSTRUCCIONES ESPECIALES:
 - Si ves dos columnas con líneas de colores o flechas trazadas entre elementos, eso es "relacionar".

@@ -292,7 +292,7 @@
 
       <!-- Tab: Comparación de Agentes -->
       <div v-show="activeTab === 'comparacion'" class="animate-fade-in">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
           <AgentCard
             v-for="agent in agentCards"
             :key="agent.key"
@@ -318,9 +318,8 @@
                   class="text-left text-surface-muted dark:text-surface-mutedDark text-xs border-b border-surface-border dark:border-surface-borderDark"
                 >
                   <th class="pb-2">Pregunta</th>
-                  <th class="pb-2">Agente A</th>
-                  <th class="pb-2">Agente B</th>
-                  <th class="pb-2">Final</th>
+                  <th class="pb-2">Calificador</th>
+                  <th class="pb-2">Juez (Final)</th>
                   <th class="pb-2">Razón</th>
                 </tr>
               </thead>
@@ -335,12 +334,8 @@
                     {{ d.pregunta }}
                   </td>
 
-                  <td class="py-2 font-mono text-blue-600 dark:text-blue-300">
-                    {{ d.punteo_a }}
-                  </td>
-
                   <td class="py-2 font-mono text-purple-600 dark:text-purple-300">
-                    {{ d.punteo_b }}
+                    {{ d.punteo_b ?? d.punteo_a ?? '—' }}
                   </td>
 
                   <td class="py-2 font-mono text-amber-600 dark:text-amber-300 font-bold">
@@ -495,8 +490,7 @@ const tabs = [
 ]
 
 const agentCards = [
-  { key: 'calificador_a', label: 'Calificador A', color: 'blue', icon: 'cpu-chip', modelo: 'Flash' },
-  { key: 'calificador_b', label: 'Calificador B', color: 'purple', icon: 'cpu-chip', modelo: 'Pro' },
+  { key: 'calificador_b', label: 'Calificador', color: 'purple', icon: 'cpu-chip', modelo: 'Pro' },
   { key: 'juez', label: 'Juez / Supervisor', color: 'amber', icon: 'scale', modelo: 'Flash' },
 ]
 

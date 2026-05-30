@@ -4,6 +4,7 @@ DeepGrader AI — FastAPI Backend
 from __future__ import annotations
 
 import asyncio
+import logging
 import os
 import shutil
 import uuid
@@ -15,6 +16,17 @@ from passlib.context import CryptContext
 from pathlib import Path
 from typing import Optional
 from datetime import datetime, timedelta
+
+# ── Logging persistente ──────────────────────────────────────
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    handlers=[
+        logging.StreamHandler(),                          # consola
+        logging.FileHandler("backend.log", encoding="utf-8"),  # archivo
+    ],
+)
+logger = logging.getLogger("deepgrader")
 
 from fastapi import (
     BackgroundTasks, Depends, FastAPI, File, Form,
@@ -882,7 +894,7 @@ async def _process_exam_task(examen_id: int) -> None:
                 examen = result.scalar_one_or_none()
 
                 if not examen:
-                    print(f"❌ Examen {examen_id} no encontrado")
+                    logger.error(f"Examen {examen_id} no encontrado en BD")
                     return
 
                 examen.estado = "procesando"
@@ -899,7 +911,7 @@ async def _process_exam_task(examen_id: int) -> None:
                     raise ValueError(f"Ninguna imagen del examen {examen_id} existe en disco")
 
                 # 1. ICR
-                print(f"🔄 Iniciando ICR para examen {examen_id}...")
+                logger.info(f"[{examen_id}] Iniciando ICR ({len(imagenes_rutas)} imagen/es)...")
                 loop = asyncio.get_running_loop()
                 icr_result = await loop.run_in_executor(
                     None,
@@ -908,7 +920,7 @@ async def _process_exam_task(examen_id: int) -> None:
                 )
 
                 tipo_examen = icr_result.get("tipo_examen", "desconocido")
-                print(f"✅ ICR completado: {tipo_examen}")
+                logger.info(f"[{examen_id}] ICR completado: tipo={tipo_examen}")
 
                 texto_resumen = icr_result.get("texto_resumen") or icr_result.get("raw_text") or ""
                 examen.texto_extraido_icr = texto_resumen
@@ -950,7 +962,7 @@ async def _process_exam_task(examen_id: int) -> None:
                 await db.flush()
 
                 # 2. RAG: usar enunciados primero, no todo el texto mezclado.
-                print("🔍 Buscando contexto RAG...")
+                logger.info(f"[{examen_id}] Buscando contexto RAG...")
                 enunciados = [
                     q.get("enunciado", q.get("enunciado_con_blancos", ""))
                     for q in preguntas_flat
@@ -968,7 +980,7 @@ async def _process_exam_task(examen_id: int) -> None:
                 )
 
                 # 3. Consenso
-                print(f"🤖 Iniciando consenso para examen {examen_id}...")
+                logger.info(f"[{examen_id}] Iniciando consenso (A={settings.provider_calificador_a}/{settings.model_calificador_a}, B={settings.provider_calificador_b}/{settings.model_calificador_b}, Juez={settings.provider_juez}/{settings.model_juez})...")
                 consensus = await run_consensus_grading(
                     examen_id=examen_id,
                     texto_icr=texto_resumen,
@@ -978,14 +990,15 @@ async def _process_exam_task(examen_id: int) -> None:
                     distribucion_series=examen.distribucion_series or [],
                 )
 
-                print(f"✅ Consenso completado para examen {examen_id}")
-                print(f"DEBUG calificacion_final: {consensus.calificacion_final}")
-                print(f"DEBUG error consenso: {consensus.error}")
-
+                logger.info(f"[{examen_id}] Consenso completado. Error consenso: {consensus.error or 'ninguno'}")
+                if consensus.resultado_a:
+                    logger.info(f"[{examen_id}] Calificador A ({consensus.resultado_a.modelo}): error={consensus.resultado_a.error or 'OK'}, tokens={consensus.resultado_a.tokens}, latencia={consensus.resultado_a.latencia_ms}ms")
+                if consensus.resultado_b:
+                    logger.info(f"[{examen_id}] Calificador B ({consensus.resultado_b.modelo}): error={consensus.resultado_b.error or 'OK'}, tokens={consensus.resultado_b.tokens}, latencia={consensus.resultado_b.latencia_ms}ms")
                 if consensus.resultado_juez:
-                    print(f"DEBUG juez error: {consensus.resultado_juez.error}")
-                    raw_juez = consensus.resultado_juez.respuesta_raw or ""
-                    print(f"DEBUG juez raw: {raw_juez[:500]}")
+                    logger.info(f"[{examen_id}] Juez ({consensus.resultado_juez.modelo}): error={consensus.resultado_juez.error or 'OK'}, tokens={consensus.resultado_juez.tokens}, latencia={consensus.resultado_juez.latencia_ms}ms")
+                    if consensus.resultado_juez.error:
+                        logger.warning(f"[{examen_id}] Juez raw (primeros 500 chars): {(consensus.resultado_juez.respuesta_raw or '')[:500]}")
 
                 # 4. Logs: limpiar logs previos del examen para evitar duplicados.
                 await db.execute(delete(LogConsenso).where(LogConsenso.examen_id == examen_id))
@@ -1017,7 +1030,7 @@ async def _process_exam_task(examen_id: int) -> None:
                 if not cf_data:
                     examen.estado = "error"
                     await db.commit()
-                    print(f"❌ Examen {examen_id}: consenso no produjo calificación")
+                    logger.error(f"[{examen_id}] Consenso no produjo calificación (cf_data vacío). Error consenso: {consensus.error}")
                     return
 
                 punteo_obtenido = float(cf_data.get("punteo_total", 0) or 0)
@@ -1061,7 +1074,7 @@ async def _process_exam_task(examen_id: int) -> None:
                     pdf_path = generate_pdf_report(cf_data_final)
                     word_path = generate_word_report(cf_data_final)
                 except Exception as rep_err:
-                    print(f"⚠️ Error generando reporte: {rep_err}")
+                    logger.warning(f"[{examen_id}] Error generando reporte: {rep_err}")
 
                 preguntas_json = json.dumps(
                     cf_data_final.get("preguntas", []),
@@ -1106,9 +1119,9 @@ async def _process_exam_task(examen_id: int) -> None:
 
                 await db.commit()
 
-                print(
-                    f"🎉 Examen {examen_id} completado: "
-                    f"{punteo_obtenido_final}/{punteo_maximo_final} ({porcentaje_final}%)"
+                logger.info(
+                    f"[{examen_id}] COMPLETADO: "
+                    f"{punteo_obtenido_final}/{punteo_maximo_final} pts ({porcentaje_final}%)"
                 )
 
             except Exception as exc:
@@ -1123,8 +1136,7 @@ async def _process_exam_task(examen_id: int) -> None:
                 except Exception:
                     await db.rollback()
 
-                print(f"❌ Error procesando examen {examen_id}: {exc}")
-                traceback.print_exc()
+                logger.error(f"[{examen_id}] ERROR al procesar: {exc}", exc_info=True)
 
 # ─────────────────────────────────────────────
 # Historial

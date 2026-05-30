@@ -7,10 +7,19 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore", protected_namespaces=())
 
     # Google GenAI
     gemini_api_key: str = ""
+
+    # Groq
+    groq_api_key: str = ""
+
+    # OpenAI
+    openai_api_key: str = ""
+
+    # NVIDIA NIM
+    nvidia_api_key: str = ""
 
     # MySQL
     db_host: str = "localhost"
@@ -29,12 +38,16 @@ class Settings(BaseSettings):
     api_port: int = 8000
     secret_key: str = "change-me"
     cors_origins: str = "http://localhost:5173"
-    groq_api_key: str = ""
 
-    # Modelos
+    # Proveedores por agente (gemini | groq | openai | nvidia)
+    provider_calificador_a: str = "groq"
+    provider_calificador_b: str = "groq"
+    provider_juez: str = "openai"
+
+    # Modelos por agente
     model_calificador_a: str = "meta-llama/llama-4-scout-17b-16e-instruct"
     model_calificador_b: str = "meta-llama/llama-4-scout-17b-16e-instruct"
-    model_juez: str = "meta-llama/llama-4-scout-17b-16e-instruct"
+    model_juez: str = "gpt-4o-mini"
     model_embedding: str = "gemini-embedding-001"
     model_icr: str = "meta-llama/llama-4-scout-17b-16e-instruct"
 
