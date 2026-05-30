@@ -1001,3 +1001,274 @@ async function deleteAccount() {
   }
 }
 </script>
+
+<style scoped>
+/* ── Página ─────────────────────────────────── */
+.perfil-page {
+  @apply min-h-screen pb-16;
+}
+
+/* ── Header ─────────────────────────────────── */
+.perfil-header {
+  @apply flex items-center justify-between px-4 py-4 border-b
+         border-surface-border dark:border-surface-borderDark
+         bg-surface-card dark:bg-surface-cardDark
+         sticky top-0 z-30;
+}
+
+.perfil-title {
+  @apply text-base font-semibold text-surface-text dark:text-surface-textDark;
+}
+
+.perfil-back-btn {
+  @apply flex items-center gap-1.5 text-sm text-surface-muted dark:text-surface-mutedDark
+         hover:text-surface-text dark:hover:text-surface-textDark
+         transition-colors px-3 py-1.5 rounded-lg
+         hover:bg-surface-tag dark:hover:bg-surface-tagDark;
+}
+
+/* ── Cards ──────────────────────────────────── */
+.perfil-card {
+  @apply bg-surface-card dark:bg-surface-cardDark
+         border border-surface-border dark:border-surface-borderDark
+         rounded-2xl;
+}
+
+.perfil-hero {
+  @apply p-5;
+}
+
+.perfil-danger-card {
+  @apply bg-red-500/5 border border-red-500/20 rounded-2xl;
+}
+
+/* ── Skeleton ───────────────────────────────── */
+.perfil-skeleton-card {
+  @apply h-24 rounded-2xl bg-surface-tag dark:bg-surface-tagDark animate-pulse;
+}
+
+/* ── Avatar ─────────────────────────────────── */
+.perfil-avatar-ring {
+  @apply p-0.5 rounded-full shrink-0;
+  background: conic-gradient(
+    from 180deg,
+    theme('colors.brand.300'),
+    theme('colors.brand.700'),
+    theme('colors.brand.300')
+  );
+}
+
+.perfil-avatar-inner {
+  @apply w-16 h-16 rounded-full flex items-center justify-center
+         bg-surface-card dark:bg-surface-cardDark
+         text-brand-700 dark:text-brand-300
+         font-bold text-xl select-none;
+}
+
+/* ── Badges ─────────────────────────────────── */
+.perfil-badge-active {
+  @apply inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs
+         bg-green-500/10 text-green-600 dark:text-green-400
+         border border-green-500/20;
+}
+
+.perfil-pulse-dot {
+  @apply w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse;
+}
+
+.perfil-badge-inst {
+  @apply inline-flex items-center px-2 py-0.5 rounded-full text-xs
+         bg-surface-tag dark:bg-surface-tagDark
+         text-surface-muted dark:text-surface-mutedDark
+         border border-surface-border dark:border-surface-borderDark;
+}
+
+/* ── Nivel ring ─────────────────────────────── */
+.perfil-nivel-ring {
+  @apply relative shrink-0;
+}
+
+.perfil-ring-bg {
+  stroke: theme('colors.brand.300');
+  stroke-opacity: 0.2;
+}
+
+.perfil-ring-progress {
+  stroke: theme('colors.brand.300');
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.perfil-nivel-label {
+  @apply absolute inset-0 flex items-center justify-center;
+}
+
+/* ── Tabs ───────────────────────────────────── */
+.perfil-tabs-bar {
+  @apply flex gap-1 p-1 rounded-xl
+         bg-surface-tag dark:bg-surface-tagDark
+         border border-surface-border dark:border-surface-borderDark;
+}
+
+.perfil-tab-btn {
+  @apply flex-1 flex items-center justify-center gap-1.5
+         py-2 px-3 rounded-lg text-xs font-medium
+         text-surface-muted dark:text-surface-mutedDark
+         hover:text-surface-text dark:hover:text-surface-textDark
+         transition-all duration-150;
+}
+
+.perfil-tab-active {
+  @apply bg-surface-card dark:bg-surface-cardDark
+         text-surface-text dark:text-surface-textDark
+         shadow-sm border border-surface-border dark:border-surface-borderDark;
+}
+
+/* ── Secciones ──────────────────────────────── */
+.perfil-section-header {
+  @apply flex items-center gap-2 text-sm font-medium
+         text-surface-text dark:text-surface-textDark mb-4;
+}
+
+.perfil-divider-thin {
+  @apply border-t border-surface-border dark:border-surface-borderDark;
+}
+
+/* ── Campos ─────────────────────────────────── */
+.perfil-field-label {
+  @apply block text-xs font-medium text-surface-muted dark:text-surface-mutedDark mb-1;
+}
+
+.perfil-field-error {
+  @apply text-xs text-red-500 dark:text-red-400 mt-1;
+}
+
+.perfil-input-error {
+  @apply !border-red-500/50 !ring-red-500/30;
+}
+
+.perfil-input-icon {
+  @apply absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4
+         text-surface-muted dark:text-surface-mutedDark pointer-events-none;
+}
+
+.perfil-eye-btn {
+  @apply absolute right-3 top-1/2 -translate-y-1/2
+         text-surface-muted dark:text-surface-mutedDark
+         hover:text-surface-text dark:hover:text-surface-textDark
+         transition-colors;
+}
+
+/* ── Nivel range ────────────────────────────── */
+.perfil-range {
+  @apply accent-brand-700 dark:accent-brand-300 cursor-pointer;
+}
+
+.perfil-nivel-badge {
+  @apply ml-2 text-xs font-mono text-brand-700 dark:text-brand-300
+         bg-brand-300/10 px-1.5 py-0.5 rounded-md;
+}
+
+.perfil-nivel-desc {
+  @apply flex items-start gap-1.5 mt-1;
+}
+
+/* ── Password strength ──────────────────────── */
+.perfil-strength-bar {
+  @apply flex gap-1;
+}
+
+.perfil-strength-seg {
+  @apply h-1 flex-1 rounded-full transition-colors duration-300;
+}
+
+.perfil-seg-empty  { @apply bg-surface-border dark:bg-surface-borderDark; }
+.perfil-seg-weak   { @apply bg-red-500; }
+.perfil-seg-fair   { @apply bg-orange-400; }
+.perfil-seg-good   { @apply bg-yellow-400; }
+.perfil-seg-strong { @apply bg-green-500; }
+
+/* ── Session info ───────────────────────────── */
+.perfil-session-info {
+  @apply rounded-xl overflow-hidden border border-surface-border dark:border-surface-borderDark;
+}
+
+.perfil-session-row {
+  @apply flex items-center justify-between gap-4 px-4 py-3
+         border-b border-surface-border dark:border-surface-borderDark last:border-0
+         bg-surface-tag dark:bg-surface-tagDark;
+}
+
+/* ── Feedback boxes ─────────────────────────── */
+.perfil-success-box {
+  @apply bg-green-500/10 border border-green-500/20 rounded-xl;
+}
+
+.perfil-error-box {
+  @apply bg-red-500/10 border border-red-500/20 rounded-xl;
+}
+
+/* ── Buttons ────────────────────────────────── */
+.perfil-btn-primary-sm {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+         bg-brand-700 dark:bg-brand-300 text-white dark:text-surface-dark
+         hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.perfil-btn-logout {
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium
+         border border-surface-border dark:border-surface-borderDark
+         text-surface-text dark:text-surface-textDark
+         hover:bg-surface-tag dark:hover:bg-surface-tagDark
+         transition-colors w-full;
+}
+
+.perfil-btn-danger-outline {
+  @apply inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium
+         border border-red-500/30 text-red-500 dark:text-red-400
+         hover:bg-red-500/10 transition-colors;
+}
+
+.perfil-btn-danger-sm {
+  @apply inline-flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-sm font-medium
+         bg-red-500 text-white hover:bg-red-600
+         transition-colors disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.perfil-btn-cancel-sm {
+  @apply inline-flex items-center justify-center px-3 py-2 rounded-xl text-sm font-medium
+         border border-surface-border dark:border-surface-borderDark
+         text-surface-text dark:text-surface-textDark
+         hover:bg-surface-tag dark:hover:bg-surface-tagDark transition-colors;
+}
+
+/* ── Spinner ────────────────────────────────── */
+.perfil-spinner-sm {
+  @apply w-4 h-4 rounded-full border-2
+         border-white/30 border-t-white
+         animate-spin inline-block;
+}
+
+/* ── Transitions ────────────────────────────── */
+.tab-fade-enter-active,
+.tab-fade-leave-active {
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.tab-fade-enter-from {
+  opacity: 0;
+  transform: translateY(4px);
+}
+.tab-fade-leave-to {
+  opacity: 0;
+  transform: translateY(-4px);
+}
+
+.error-slide-enter-active,
+.error-slide-leave-active {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.error-slide-enter-from,
+.error-slide-leave-to {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+</style>
